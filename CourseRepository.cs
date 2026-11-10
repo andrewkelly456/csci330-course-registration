@@ -64,9 +64,16 @@ namespace cs330_proj1
                 Semester="Spring 2022"
 
             };
+            CourseOffering co4 = new CourseOffering() {
+                TheCourse=c4,
+                Section="01",
+                Semester="Fall 2020"
+
+            };
             Offerings.Add(co1);
             Offerings.Add(co2);
             Offerings.Add(co3);
+            Offerings.Add(co4);
             CoreGoal cg1 = new CoreGoal() {
                 Id="CG1",
                 Name="Artistic Expression",
