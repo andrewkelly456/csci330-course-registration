@@ -277,6 +277,73 @@ namespace CourseProject.Tests
             Assert.Empty(result);
         }
 
+        // ---------- getCourseOfferingsBySemesterAndDept ----------
+
+        [Fact]
+        public void GetCourseOfferingsBySemesterAndDept_OneOfferingMatchesSemesterAndDept_OfferingIsReturned()
+        {
+            // Arrange
+            var courses = GetTestCourses();
+            var mockRepository = new Mock<ICourseRepository>();
+            mockRepository.Setup(m => m.Offerings).Returns(new List<CourseOffering>()
+            {
+                new CourseOffering() { Section = "1", Semester = "Spring 2021", TheCourse = courses[0] }, // ARTD
+                new CourseOffering() { Section = "1", Semester = "Spring 2021", TheCourse = courses[1] }, // ARTS
+                new CourseOffering() { Section = "1", Semester = "Fall 2021", TheCourse = courses[0] }    // wrong semester
+            });
+            var courseServices = new CourseServices(mockRepository.Object);
+
+            // Act
+            var result = courseServices.getCourseOfferingsBySemesterAndDept("Spring 2021", "ARTD");
+
+            // Assert
+            var offering = Assert.Single(result);
+            Assert.Equal("ARTD 201", offering.TheCourse.Name);
+            Assert.Equal("Spring 2021", offering.Semester);
+        }
+
+        [Fact]
+        public void GetCourseOfferingsBySemesterAndDept_MultipleOfferingsMatch_AllMatchingOfferingsAreReturned()
+        {
+            // Arrange
+            var csci330 = new Course() { Name = "CSCI 330", Title = "languages", Credits = 3.0, Description = "d" };
+            var csci135 = new Course() { Name = "CSCI 135", Title = "intro", Credits = 3.0, Description = "d" };
+            var stat201 = new Course() { Name = "STAT 201", Title = "stats", Credits = 4.0, Description = "d" };
+            var mockRepository = new Mock<ICourseRepository>();
+            mockRepository.Setup(m => m.Offerings).Returns(new List<CourseOffering>()
+            {
+                new CourseOffering() { Section = "1", Semester = "Spring 2021", TheCourse = csci330 },
+                new CourseOffering() { Section = "1", Semester = "Spring 2021", TheCourse = csci135 },
+                new CourseOffering() { Section = "1", Semester = "Spring 2021", TheCourse = stat201 }
+            });
+            var courseServices = new CourseServices(mockRepository.Object);
+
+            // Act
+            var result = courseServices.getCourseOfferingsBySemesterAndDept("Spring 2021", "CSCI");
+
+            // Assert
+            Assert.Equal(2, result.Count);
+            Assert.All(result, o => Assert.Equal("CSCI", o.TheCourse.Department));
+        }
+
+        [Fact]
+        public void GetCourseOfferingsBySemesterAndDept_NoOfferingMatches_EmptyListIsReturned()
+        {
+            // Arrange
+            var mockRepository = new Mock<ICourseRepository>();
+            mockRepository.Setup(m => m.Offerings).Returns(new List<CourseOffering>()
+            {
+                new CourseOffering() { Section = "1", Semester = "Spring 2021", TheCourse = GetTestCourses()[0] }
+            });
+            var courseServices = new CourseServices(mockRepository.Object);
+
+            // Act
+            var result = courseServices.getCourseOfferingsBySemesterAndDept("Spring 2021", "MATH");
+
+            // Assert
+            Assert.Empty(result);
+        }
+
         private List<Course> GetTestCourses()
         {
             return new List<Course>()
