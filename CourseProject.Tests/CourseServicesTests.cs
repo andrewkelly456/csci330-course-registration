@@ -157,6 +157,62 @@ namespace CourseProject.Tests
             Assert.Empty(result);
         }
 
+        // ---------- getCourses ----------
+
+        [Fact]
+        public void GetCourses_RepositoryHasCourses_AllCoursesAreReturned()
+        {
+            // Arrange
+            var mockRepository = new Mock<ICourseRepository>();
+            mockRepository.Setup(m => m.Courses).Returns(GetTestCourses());
+            var courseServices = new CourseServices(mockRepository.Object);
+
+            // Act
+            var result = courseServices.getCourses();
+
+            // Assert
+            Assert.Equal(2, result.Count);
+            Assert.Contains(result, c => c.Name == "ARTD 201");
+            Assert.Contains(result, c => c.Name == "ARTS 101");
+        }
+
+        [Fact]
+        public void GetCourses_CoursesAreUnordered_CoursesAreReturnedSortedByName()
+        {
+            // Arrange
+            var mockRepository = new Mock<ICourseRepository>();
+            mockRepository.Setup(m => m.Courses).Returns(new List<Course>()
+            {
+                new Course() { Name = "STAT 201", Title = "stats", Credits = 4.0, Description = "d" },
+                new Course() { Name = "ARTD 201", Title = "graphic design", Credits = 3.0, Description = "d" },
+                new Course() { Name = "CSCI 330", Title = "languages", Credits = 3.0, Description = "d" }
+            });
+            var courseServices = new CourseServices(mockRepository.Object);
+
+            // Act
+            var result = courseServices.getCourses();
+
+            // Assert
+            Assert.Equal(new[] { "ARTD 201", "CSCI 330", "STAT 201" }, result.Select(c => c.Name));
+        }
+
+        [Fact]
+        public void GetCourses_ResultIsModified_RepositoryListIsNotAffected()
+        {
+            // Arrange
+            var repoCourses = GetTestCourses();
+            var mockRepository = new Mock<ICourseRepository>();
+            mockRepository.Setup(m => m.Courses).Returns(repoCourses);
+            var courseServices = new CourseServices(mockRepository.Object);
+
+            // Act
+            var result = courseServices.getCourses();
+            result.Clear();
+
+            // Assert
+            Assert.Equal(2, repoCourses.Count);
+        }
+
         private List<Course> GetTestCourses()
         {
             return new List<Course>()
